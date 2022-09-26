@@ -1,41 +1,59 @@
-const nameInput = document.getElementById("my-name-input");
-const myMessage = document.getElementById("my-message");
-const sendButton = document.getElementById("send-button");
-const chatBox = document.getElementById("chat");
+const nameInput = document.getElementById(`my-name-input`);
+const myMessage = document.getElementById(`my-message`);
+const sendButton = document.getElementById(`send-button`);
+const chatBox = document.getElementById(`chat`);
 const serverURL = `https://it3049c-chat-application.herokuapp.com/messages`;
-
-updateMessages()
+const saveUsernameButton = document.getElementById(`saveUsernameButton`);
+updateMessages();
 const MILLISECONDS_IN_TEN_SECONDS = 10000;
 setInterval(updateMessages, MILLISECONDS_IN_TEN_SECONDS);
 
-sendButton.addEventListener("click", function(sendButtonClickEvent) {
+const usernameFromStorage = localStorage.getItem(`username`);
+if(usernameFromStorage != null && usernameFromStorage.trim().length > 0){
+  nameInput.value = usernameFromStorage;
+  myMessage.removeAttribute(`disabled`);
+}else{
+  myMessage.setAttribute(`disabled`, ``);
+}
+
+sendButton.addEventListener(`click`, function(sendButtonClickEvent) {
   sendButtonClickEvent.preventDefault();
   const sender = nameInput.value;
   const message = myMessage.value;
 
   sendMessages(sender,message);
-  myMessage.value = "";
+  myMessage.value = ``;
+});
+
+saveUsernameButton.addEventListener(`click`, function(){
+  localStorage.setItem(`username`, nameInput.value);
+
+  if(nameInput.value.length > 0){
+    myMessage.removeAttribute(`disabled`);
+  }else{
+    myMessage.setAttribute(`disabled`, ``);
+  }
 });
 
 
 function updateMessagesInChatBox(){
 
-  updateMessages()
+  updateMessages();
 }
 
 
 function fetchMessages() {
-    return fetch(serverURL)
-        .then( response => response.json())
+  return fetch(serverURL)
+    .then( response => response.json());
 }
 
 async function updateMessages(){
 
   const messages = await fetchMessages();
 
-  let formattedMessages = "";
+  let formattedMessages = ``;
   messages.forEach(message => {
-      formattedMessages += formatMessage(message, nameInput.value);
+    formattedMessages += formatMessage(message, nameInput.value);
   });
   chatBox.innerHTML = formattedMessages;
 
@@ -46,7 +64,7 @@ function formatMessage(message, myNameInput) {
   const formattedTime = `${time.getHours()}:${time.getMinutes()}`;
 
   if (myNameInput === message.sender) {
-      return `
+    return `
       <div class="mine messages">
           <div class="message">
               ${message.text}
@@ -55,9 +73,9 @@ function formatMessage(message, myNameInput) {
               ${formattedTime}
           </div>
       </div>
-      `
+      `;
   } else {
-      return `
+    return `
           <div class="yours messages">
               <div class="message">
                   ${message.text}
@@ -66,22 +84,22 @@ function formatMessage(message, myNameInput) {
                   ${message.sender} ${formattedTime}
               </div>
           </div>
-      `
+      `;
   }
 }
 
 function sendMessages(username, text) {
   const newMessage = {
-      sender: username,
-      text: text,
-      timestamp: new Date()
-  }
+    sender: username,
+    text: text,
+    timestamp: new Date()
+  };
 
   fetch (serverURL, {
-      method: `POST`, 
-      headers: {
-          'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(newMessage)
+    method: `POST`, 
+    headers: {
+      'Content-Type': `application/json`
+    },
+    body: JSON.stringify(newMessage)
   });
 }
